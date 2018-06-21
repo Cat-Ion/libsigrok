@@ -474,16 +474,16 @@ SR_PRIV int rigol_ds_channel_start(const struct sr_dev_inst *sdi)
 
 	if (devc->model->series->protocol >= PROTOCOL_V3 &&
 			ch->type == SR_CHANNEL_ANALOG) {
-          /* Vertical increment. */
-          if (sr_scpi_get_float(sdi->conn, ":WAV:YINC?",
-                          &devc->vert_inc[ch->index]) != SR_OK)
-            /* Vertical origin. */
-            if (sr_scpi_get_float(sdi->conn, ":WAV:YOR?",
-                            &devc->vert_origin[ch->index]) != SR_OK)
+			/* Vertical increment. */
+			if (sr_scpi_get_float(sdi->conn, ":WAV:YINC?",
+						&devc->vert_inc[ch->index]) != SR_OK)
+			/* Vertical origin. */
+			if (sr_scpi_get_float(sdi->conn, ":WAV:YOR?",
+						&devc->vert_origin[ch->index]) != SR_OK)
 			return SR_ERR;
 		/* Vertical reference. */
 		if (sr_scpi_get_int(sdi->conn, ":WAV:YREF?",
-				&devc->vert_reference[ch->index]) != SR_OK)
+					&devc->vert_reference[ch->index]) != SR_OK)
 			return SR_ERR;
 	} else if (ch->type == SR_CHANNEL_ANALOG) {
 		devc->vert_inc[ch->index] = devc->vdiv[ch->index] / 25.6;
