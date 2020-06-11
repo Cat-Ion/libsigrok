@@ -500,6 +500,7 @@ static int analog_frame_size(const struct sr_dev_inst *sdi)
 	case DATA_SOURCE_LIVE:
 		return devc->model->series->live_samples;
 	case DATA_SOURCE_MEMORY:
+	case DATA_SOURCE_SEGMENTED:
 		return devc->model->series->buffer_samples / analog_channels;
 	default:
 		return 0;
@@ -514,6 +515,7 @@ static int digital_frame_size(const struct sr_dev_inst *sdi)
 	case DATA_SOURCE_LIVE:
 		return devc->model->series->live_samples * 2;
 	case DATA_SOURCE_MEMORY:
+	case DATA_SOURCE_SEGMENTED:
 		return devc->model->series->buffer_samples * 2;
 	default:
 		return 0;
@@ -951,8 +953,19 @@ static int dev_acquisition_start(const struct sr_dev_inst *sdi)
 
 	/* Set memory mode. */
 	if (devc->data_source == DATA_SOURCE_SEGMENTED) {
-		sr_err("Data source 'Segmented' not yet supported");
-		return SR_ERR;
+		if (devc->model->series->protocol >= PROTOCOL_V4) {
+			int frames = 0;
+			sr_scpi_get_int(sdi->conn, "FUNC:WREP:FEND?", &frames);
+			if (frames <= 0) {
+				sr_err("No segmented data available");
+				return SR_ERR;
+			}
+			if (devc->limit_frames == 0 || (uint64_t)frames < devc->limit_frames)
+				devc->limit_frames = frames;
+		} else {
+			sr_err("Data source 'Segmented' not yet supported");
+			return SR_ERR;
+		}
 	}
 
 	devc->analog_frame_size = analog_frame_size(sdi);

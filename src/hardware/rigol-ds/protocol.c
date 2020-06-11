@@ -428,6 +428,9 @@ SR_PRIV int rigol_ds_capture_start(const struct sr_dev_inst *sdi)
 			if (rigol_ds_config_set(sdi, ":SING") != SR_OK)
 				return SR_ERR;
 			rigol_ds_set_wait_event(devc, WAIT_STOP);
+			if (devc->data_source == DATA_SOURCE_SEGMENTED)
+				if (rigol_ds_config_set(sdi, "FUNC:WREP:FCUR %d", devc->num_frames + 1) != SR_OK)
+					return SR_ERR;
 		}
 		break;
 	}
